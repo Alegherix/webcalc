@@ -1,3 +1,3 @@
-# webcalc
+# Webcalc
 
 WebCalculator for labbAssignment
