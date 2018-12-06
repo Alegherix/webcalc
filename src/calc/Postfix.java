@@ -1,7 +1,8 @@
 package calc;
 
-import java.lang.reflect.Array;
 import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Predicate;
 
 public class Postfix {
     private List<String> expr;
@@ -61,37 +62,58 @@ public class Postfix {
          *      - Inte finns
          *      - Är en Bracket
          *      - Har lägre precedence
-         *
+         *      - Har samma precedence
+         *      - Har högre precedence
          */
 
         for (int i = 0; i < this.expr.size(); i++) {
-            String toBeOperatedOn = this.expr.get(i);
+            String stringExpr = this.expr.get(i);
 
-            if(isOpeningOperator(toBeOperatedOn)){
-                putOnStack(toBeOperatedOn);
-            }
-
-            else if(isClosingOperator(toBeOperatedOn)){
+            if (isOpeningOperator(stringExpr)) {
+                pushToStack(stringExpr);
+            } else if (isClosingOperator(stringExpr)) {
                 handleClosingParenthesis();
-            }
+            } else if (isOperator(stringExpr)) {
+                //Om tom, så kan vi alltid pusha till stacken
+                //Annars jämför precedence, och agera därefter
+                if (stack.isEmpty()) {
+                    pushToStack(stringExpr);
+                } else if (samePrecende(stringExpr, stack.peek())) {
+                    //Same Precedence
 
-            else if(isOperator(toBeOperatedOn)){
-                stack.push(toBeOperatedOn);
-                // Här kommer majoriteten av all logik att finnas.
+                } else if (lowerPrecedence(stringExpr, stack.peek())) {
+                    //Do this
+                } else if (higerPrecedence(stringExpr, stack.peek())) {
+                    //Do that
+                }
 
-            } else if (!isOperator(toBeOperatedOn) && !isClosingOperator(toBeOperatedOn) && !isOpeningOperator(toBeOperatedOn)) {
-                putInToList(toBeOperatedOn);
+            } else if (!isOperator(stringExpr) && !isClosingOperator(stringExpr) && !isOpeningOperator(stringExpr)) {
+                //Här lägger vi till alla siffror till Listan
+                addToList(stringExpr);
             }
         }
     }
 
-    //Todo Beräkna vilka operatorer som finns mellan ( )
-    //
+
+    private boolean higerPrecedence(String stringExpr, String peek) {
+        return getPrecedence(stringExpr) > getPrecedence(peek);
+    }
+
+    public boolean samePrecende(String stringExpr, String peek) {
+        return getPrecedence(stringExpr) == getPrecedence(peek);
+    }
+
+    private boolean lowerPrecedence(String stringExpr, String peek) {
+        return getPrecedence(stringExpr) < getPrecedence(peek);
+    }
+
+
     public void handleClosingParenthesis() {
         while (!isOpeningOperator(stack.peek())) {
             listToAddTo.add(stack.pop());
         }
     }
+
 
 
     public boolean isClosingOperator(String operator){
@@ -102,15 +124,11 @@ public class Postfix {
         return "(".equals(operator);
     }
 
-    public String popFromStack() {
-        return stack.pop();
-    }
-
-    public void putOnStack(String op){
+    public void pushToStack(String op) {
         stack.push(op);
     }
 
-    public void putInToList(String character){
+    public void addToList(String character) {
         listToAddTo.add(character);
     }
 
@@ -140,6 +158,7 @@ public class Postfix {
         //System.out.println("\n");
         testObj.printList();
 
+        System.out.println();
 
     }
 }
