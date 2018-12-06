@@ -105,7 +105,7 @@ public class Calculator {
 
      List<String> tokenize(String expr) {
         // Here we use a LookAhead and LookBehind
-        String delimiter =  "((?<=[(-+*/)])|(?=[(-+*/)]))";
+        String delimiter =  "((?<=[(-+*/^)])|(?=[(-+*/^)]))";
         return Arrays.asList(expr.replaceAll("\\s","").split(delimiter));
     }
 
