@@ -71,20 +71,32 @@ public class Postfix {
 
             if (isOpeningOperator(stringExpr)) {
                 pushToStack(stringExpr);
-            } else if (isClosingOperator(stringExpr)) {
+            }
+            else if (isClosingOperator(stringExpr)) {
                 handleClosingParenthesis();
-            } else if (isOperator(stringExpr)) {
+            }
+            else if (isOperator(stringExpr)) {
                 //Om tom, så kan vi alltid pusha till stacken
                 //Annars jämför precedence, och agera därefter
                 if (stack.isEmpty()) {
                     pushToStack(stringExpr);
-                } else if (samePrecende(stringExpr, stack.peek())) {
+                }
+                else if (samePrecende(stringExpr)) {
                     //Same Precedence
+                    // Osäker men rätt säker på att det räcker med att poppa stacken 1 gång
+                    // Och därefter pusha nuvarande string Expr till stacken.
 
-                } else if (lowerPrecedence(stringExpr, stack.peek())) {
-                    //Do this
-                } else if (higerPrecedence(stringExpr, stack.peek())) {
-                    //Do that
+                }
+                else if (lowerPrecedence(stringExpr)) {
+                    // Om Strängen för nuvarande iteration har lägre precedence än den som ligger ytterst i stacken
+                    // Då behöver vi poppa yttersta ifrån stacken rekursivt tills dess att detta expr har den högsta
+                    // Precedence
+
+                }
+                else if (higerPrecedence(stringExpr)) {
+                    //Om strängen för nuvarande iteration har högre precedence än den som för närvarande ligger
+                    // ytterst i stacken så se bara till att pusha till stacken.
+                    stack.push(stringExpr);
                 }
 
             } else if (!isOperator(stringExpr) && !isClosingOperator(stringExpr) && !isOpeningOperator(stringExpr)) {
@@ -95,16 +107,16 @@ public class Postfix {
     }
 
 
-    private boolean higerPrecedence(String stringExpr, String peek) {
-        return getPrecedence(stringExpr) > getPrecedence(peek);
+    private boolean higerPrecedence(String newExprToCompareWith) {
+        return getPrecedence(newExprToCompareWith) > getPrecedence(stack.peek());
     }
 
-    public boolean samePrecende(String stringExpr, String peek) {
-        return getPrecedence(stringExpr) == getPrecedence(peek);
+    public boolean samePrecende(String newExprToCompareWith) {
+        return getPrecedence(newExprToCompareWith) == getPrecedence(stack.peek());
     }
 
-    private boolean lowerPrecedence(String stringExpr, String peek) {
-        return getPrecedence(stringExpr) < getPrecedence(peek);
+    private boolean lowerPrecedence(String newExprToCompareWith) {
+        return getPrecedence(newExprToCompareWith) < getPrecedence(stack.peek());
     }
 
 
