@@ -1,6 +1,7 @@
 package calc;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.Double.NaN;
 import static java.lang.Double.parseDouble;
@@ -230,10 +231,10 @@ public class Calculator {
      List<String> tokenize(String expr) {
         // Here we use a LookAhead and LookBehind
          String delimiter = "((?<=[-(+*/^)])|(?=[-(+*/^)]))";
-         List<String> specialCaseList = new ArrayList<>();
-         for (Character c : expr.toCharArray()) {
-             specialCaseList.add(String.valueOf(c));
-         }
+
+         List<String> specialCaseList = expr.codePoints()
+                 .mapToObj(c -> String.valueOf((char) c))
+                 .collect(Collectors.toList());
 
          if (!operatorInString(specialCaseList) && spacesInString(expr)) {
              return Arrays.asList("0");
