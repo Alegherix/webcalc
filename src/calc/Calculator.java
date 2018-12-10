@@ -1,11 +1,9 @@
 package calc;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static java.lang.Double.NaN;
+import static java.lang.Double.parseDouble;
 import static java.lang.Math.pow;
 
 
@@ -43,8 +41,26 @@ public class Calculator {
     // ------  Evaluate RPN expression -------------------
 
     double evalPostfix(List<String> postfix) {
-       // TODO
-        return 0;
+        int count = 0;
+        for (int i = 0; i < postfix.size(); i++) {
+            String curStr = postfix.get(i);
+
+            if (postfix.size() <= 1 && curStr.contains("\\S")) {
+                return 0;
+            } else if (!isOperator(curStr)) {
+                stack.push(curStr);
+            } else if (stack.size() <= 1 && isOperator(curStr)) {
+                return 0;
+            } else {
+                stack.push(Double.toString((applyOperator(curStr, Double.parseDouble(stack.pop()), Double.parseDouble(stack.pop())))));
+                count++;
+            }
+        }
+        if (count == 0 && stack.size() > 1) {
+            return 0;
+        } else {
+            return Double.parseDouble(stack.pop());
+        }
     }
 
     double applyOperator(String op, double d1, double d2) {
@@ -67,10 +83,116 @@ public class Calculator {
     }
 
     // ------- Infix 2 Postfix ------------------------
+    Stack<String> stack = new Stack();
+    List<String> outputString = new ArrayList();
 
     List<String> infix2Postfix(List<String> infix) {
-       // TODO
-        return null;
+        outputString.clear();
+        stack.clear();
+        int count = 0;
+
+        for (int i = 0; i < infix.size(); i++) {
+            String curStr = infix.get(i);
+            if (isOpeningOperator(curStr)) {
+                stack.push(curStr);
+                count++;
+                if (i == infix.size() - 1) {
+                    outputString.clear();
+                    outputString.add("0");
+                    return outputString;
+                }
+            } else if (isClosingOperator(curStr)) {
+                if ((i == infix.size() - 1) && count == 0) {
+                    outputString.clear();
+                    outputString.add("0");
+                    return outputString;
+                }
+                handleClosingParenthesis();
+                emptyStack(i, infix);
+                count--;
+
+            } else if (!isOperator(curStr)) {
+                outputString.add(curStr);
+                emptyStack(i, infix);
+
+            } else if (((isOperator(curStr)) && ((getPrecedence(curStr)) < (stackPeekPrec())))) {
+                while (!stack.isEmpty()) {
+                    outputString.add(stack.pop());
+                }
+                stack.push(curStr);
+                emptyStack(i, infix);
+            } else if (((isOperator(curStr)) && ((getPrecedence(curStr)) == (stackPeekPrec())))) {
+                if (getAssociativity(curStr) == Assoc.LEFT) {
+                    outputString.add(stack.pop());
+                    stack.push(curStr);
+                    emptyStack(i, infix);
+                } else if (getAssociativity(curStr) == Assoc.RIGHT) {
+                    stack.push(curStr);
+                    emptyStack(i, infix);
+                }
+            } else {
+                stack.push(curStr);
+                emptyStack(i, infix);
+            }
+        }
+        if (count > 0) {
+            outputString.clear();
+            outputString.add("0");
+            return outputString;
+        }
+
+        return outputString;
+    }
+
+    void emptyStack(int i, List<String> infix) {
+        if (i == infix.size() - 1) {
+            while (!stack.isEmpty()) {
+                if ("()".contains(stack.peek())) {
+                    stack.pop();
+                } else {
+                    outputString.add(stack.pop());
+                }
+            }
+        }
+    }
+
+    int stackPeekPrec() {
+        if (stack.isEmpty()) {
+            return -1;
+        } else {
+            return getPrecedence(stack.peek());
+        }
+    }
+
+    public void handleClosingParenthesis() {
+        while (!isOpeningOperator(stack.peek())) {
+            outputString.add(stack.pop());
+        }
+    }
+
+    public boolean isClosingOperator(String operator) {
+        return ")".equals(operator);
+    }
+
+    public boolean isOpeningOperator(String operator) {
+        return "(".equals(operator);
+    }
+
+    public boolean isOperator(String op) {
+        switch (op) {
+            case "+":
+                return true;
+            case "-":
+                return true;
+            case "/":
+                return true;
+            case "*":
+                return true;
+            case "^":
+                return true;
+            default:
+                return false;
+        }
     }
 
 
@@ -81,6 +203,8 @@ public class Calculator {
             return 3;
         } else if ("^".contains(op)) {
             return 4;
+        } else if (("()".contains(op))) {
+            return -2;
         } else {
             throw new RuntimeException(OP_NOT_FOUND);
         }
@@ -105,12 +229,30 @@ public class Calculator {
 
      List<String> tokenize(String expr) {
         // Here we use a LookAhead and LookBehind
-        String delimiter =  "((?<=[(-+*/^)])|(?=[(-+*/^)]))";
-        return Arrays.asList(expr.replaceAll("\\s","").split(delimiter));
+         String delimiter = "((?<=[-(+*/^)])|(?=[-(+*/^)]))";
+         List<String> specialCaseList = new ArrayList<>();
+         for (Character c : expr.toCharArray()) {
+             specialCaseList.add(String.valueOf(c));
+         }
+
+         if (!operatorInString(specialCaseList) && spacesInString(expr)) {
+             return Arrays.asList("0");
+         } else {
+             return Arrays.asList(expr.replaceAll("\\s", "").split(delimiter));
+         }
+    }
+
+    boolean spacesInString(String string) {
+        return string.chars().anyMatch(Character::isSpaceChar);
+    }
+
+    boolean operatorInString(List<String> strings) {
+        return strings.stream().anyMatch(this::isOperator);
     }
 
     public static void main(String[] args) {
-
+        //System.out.println(new Calculator().neitherIsOperator("1","15"));
+        System.out.println(new Calculator().spacesInString("HALLÅ1312 HEJ"));
     }
 
 }
