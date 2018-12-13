@@ -42,24 +42,27 @@ public class Calculator {
     // ------  Evaluate RPN expression -------------------
 
     double evalPostfix(List<String> postfix) {
-        int count = 0;
+        int operatorCount = 0;
         for (int i = 0; i < postfix.size(); i++) {
             String curStr = postfix.get(i);
 
-            if (postfix.size() <= 1 && curStr.contains("\\S")) {
+        // Om 1 element, och spaces || Stacken <= 1, och operator, Så error
+            if (postfix.size() <= 1 && spacesInString(curStr) || stack.size() <= 1 && isOperator(curStr)) {
                 return 0;
-            } else if (!isOperator(curStr)) {
+            }
+            else if (!isOperator(curStr)) {
                 stack.push(curStr);
-            } else if (stack.size() <= 1 && isOperator(curStr)) {
-                return 0;
-            } else {
+            }
+            else {
+                //kommer applya operatorn till dem 2 översta i stacken, och poppa dem.
                 stack.push(Double.toString((applyOperator(curStr, Double.parseDouble(stack.pop()), Double.parseDouble(stack.pop())))));
-                count++;
+                operatorCount++;
             }
         }
-        if (count == 0 && stack.size() > 1) {
+        if (operatorCount == 0 && stack.size() > 1) {
             return 0;
-        } else {
+        }
+        else {
             return Double.parseDouble(stack.pop());
         }
     }
@@ -84,50 +87,52 @@ public class Calculator {
     }
 
     // ------- Infix 2 Postfix ------------------------
-    Stack<String> stack = new Stack();
-    List<String> outputString = new ArrayList();
+    Stack<String> stack = new Stack<>();
+    List<String> outputString = new ArrayList<>();
 
     List<String> infix2Postfix(List<String> infix) {
         outputString.clear();
         stack.clear();
-        int count = 0;
+        int paranthesisCount = 0;
 
         for (int i = 0; i < infix.size(); i++) {
             String curStr = infix.get(i);
             if (isOpeningOperator(curStr)) {
                 stack.push(curStr);
-                count++;
-                if (i == infix.size() - 1) {
-                    outputString.clear();
-                    outputString.add("0");
-                    return outputString;
-                }
-            } else if (isClosingOperator(curStr)) {
-                if ((i == infix.size() - 1) && count == 0) {
+                paranthesisCount++;
+            }
+            else if (isClosingOperator(curStr)) {
+                if ((i == infix.size() - 1) && paranthesisCount == 0) {
                     outputString.clear();
                     outputString.add("0");
                     return outputString;
                 }
                 handleClosingParenthesis();
                 emptyStack(i, infix);
-                count--;
+                paranthesisCount--;
 
-            } else if (!isOperator(curStr)) {
+            }
+            else if (!isOperator(curStr)) {
+                // Om ej operator, lägg till i listan,
                 outputString.add(curStr);
                 emptyStack(i, infix);
 
-            } else if (((isOperator(curStr)) && ((getPrecedence(curStr)) < (stackPeekPrec())))) {
+            }
+
+            else if (((isOperator(curStr)) && ((getPrecedence(curStr)) < (stackPeekPrec())))) {
                 while (!stack.isEmpty()) {
                     outputString.add(stack.pop());
                 }
                 stack.push(curStr);
                 emptyStack(i, infix);
-            } else if (((isOperator(curStr)) && ((getPrecedence(curStr)) == (stackPeekPrec())))) {
+            }
+            else if (((isOperator(curStr)) && ((getPrecedence(curStr)) == (stackPeekPrec())))) {
                 if (getAssociativity(curStr) == Assoc.LEFT) {
                     outputString.add(stack.pop());
                     stack.push(curStr);
                     emptyStack(i, infix);
-                } else if (getAssociativity(curStr) == Assoc.RIGHT) {
+                }
+                else if (getAssociativity(curStr) == Assoc.RIGHT) {
                     stack.push(curStr);
                     emptyStack(i, infix);
                 }
@@ -136,16 +141,16 @@ public class Calculator {
                 emptyStack(i, infix);
             }
         }
-        if (count > 0) {
+        if (paranthesisCount != 0) {
             outputString.clear();
             outputString.add("0");
             return outputString;
         }
-
         return outputString;
     }
 
     void emptyStack(int i, List<String> infix) {
+        //Töm stacken om vi är på sista iterationen.
         if (i == infix.size() - 1) {
             while (!stack.isEmpty()) {
                 if ("()".contains(stack.peek())) {
@@ -205,7 +210,7 @@ public class Calculator {
         } else if ("^".contains(op)) {
             return 4;
         } else if (("()".contains(op))) {
-            return -2;
+            return -1;
         } else {
             throw new RuntimeException(OP_NOT_FOUND);
         }
@@ -229,16 +234,17 @@ public class Calculator {
     // ---------- Tokenize -----------------------
 
      List<String> tokenize(String expr) {
-        // Here we use a LookAhead and LookBehind
+        // Here we use a LookBehind and LookAhead
          String delimiter = "((?<=[-(+*/^)])|(?=[-(+*/^)]))";
 
-         List<String> specialCaseList = expr.codePoints()
+         List<String> specialCaseList = expr.chars()
                  .mapToObj(c -> String.valueOf((char) c))
                  .collect(Collectors.toList());
 
          if (!operatorInString(specialCaseList) && spacesInString(expr)) {
              return Arrays.asList("0");
-         } else {
+         }
+         else {
              return Arrays.asList(expr.replaceAll("\\s", "").split(delimiter));
          }
     }
@@ -249,11 +255,6 @@ public class Calculator {
 
     boolean operatorInString(List<String> strings) {
         return strings.stream().anyMatch(this::isOperator);
-    }
-
-    public static void main(String[] args) {
-        //System.out.println(new Calculator().neitherIsOperator("1","15"));
-        System.out.println(new Calculator().spacesInString("HALLÅ1312 HEJ"));
     }
 
 }
