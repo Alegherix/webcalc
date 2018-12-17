@@ -103,9 +103,7 @@ public class Calculator {
             }
             else if (isClosingOperator(curStr)) {
                 if ((i == infix.size() - 1) && paranthesisCount == 0) {
-                    outputString.clear();
-                    outputString.add("0");
-                    return outputString;
+                    throw new IllegalArgumentException(MISSING_OPERATOR);
                 }
                 handleClosingParenthesis();
                 emptyStack(i, infix);
@@ -142,9 +140,7 @@ public class Calculator {
             }
         }
         if (paranthesisCount != 0) {
-            outputString.clear();
-            outputString.add("0");
-            return outputString;
+            throw new IllegalArgumentException(MISSING_OPERATOR);
         }
         return outputString;
     }
