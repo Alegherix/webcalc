@@ -48,7 +48,7 @@ public class Calculator {
 
         // Om 1 element, och spaces || Stacken <= 1, och operator, Så error
             if (postfix.size() <= 1 && spacesInString(curStr) || stack.size() <= 1 && isOperator(curStr)) {
-                return 0;
+                throw new IllegalArgumentException(MISSING_OPERAND);
             }
             else if (!isOperator(curStr)) {
                 stack.push(curStr);
@@ -60,7 +60,7 @@ public class Calculator {
             }
         }
         if (operatorCount == 0 && stack.size() > 1) {
-            return 0;
+            throw new IllegalArgumentException(MISSING_OPERATOR);
         }
         else {
             return Double.parseDouble(stack.pop());
@@ -242,7 +242,7 @@ public class Calculator {
                  .collect(Collectors.toList());
 
          if (!operatorInString(specialCaseList) && spacesInString(expr)) {
-             return Arrays.asList("0");
+             throw new IllegalArgumentException(MISSING_OPERATOR);
          }
          else {
              return Arrays.asList(expr.replaceAll("\\s", "").split(delimiter));
